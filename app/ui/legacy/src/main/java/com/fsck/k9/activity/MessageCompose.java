@@ -1017,7 +1017,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         if (id == android.R.id.home) {
             prepareToFinish(true);
         } else if (id == R.id.send) {
-            checkToSendMessage();
+            showInputKeyView();
         } else if (id == R.id.save) {
             checkToSaveDraftAndSave();
         } else if (id == R.id.discard) {
@@ -1048,6 +1048,32 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    public void showInputKeyView(){
+        EditText inputKeyEditText = new EditText(this);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Encryption")
+            .setMessage("Type positive number for your encryption key")
+            .setView(inputKeyEditText)
+            .setPositiveButton("Send With Encryption", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String editTextInput = inputKeyEditText.getText().toString();
+                    System.out.println("onclick "+"editext value is: "+ editTextInput);
+                    checkToSendMessage();
+                }
+            })
+            .setNegativeButton("Send Without Encryption",  new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String editTextInput = inputKeyEditText.getText().toString();
+                    System.out.println("onclick "+"editext value is: "+ editTextInput);
+                    checkToSendMessage();
+                }
+            })
+            .create();
+        dialog.show();
     }
 
     @Override
@@ -1138,6 +1164,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
 
     @Override
     public Dialog onCreateDialog(int id) {
+        System.out.println("Build menu "+id);
         final Builder builder;
         switch (id) {
             case DIALOG_SAVE_OR_DISCARD_DRAFT_MESSAGE:
