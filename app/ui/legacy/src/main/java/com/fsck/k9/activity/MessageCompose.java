@@ -77,6 +77,7 @@ import com.fsck.k9.controller.MessageReference;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.controller.SimpleMessagingListener;
+import com.fsck.k9.crypto.blockcipher.MatrixRoundKey;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment.AttachmentDownloadCancelListener;
 import com.fsck.k9.fragment.ProgressDialogFragment;
