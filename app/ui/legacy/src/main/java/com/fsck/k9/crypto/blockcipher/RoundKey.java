@@ -81,7 +81,7 @@ public class RoundKey {
             res.add((int)x);
         }
         // reverse
-        for(int i=0;i<16;i++){
+        for(int i=0;i<8;i++){
             int tmp = res.get(i);
             res.set(i,res.get(15-i));
             res.set(15-i,tmp);
