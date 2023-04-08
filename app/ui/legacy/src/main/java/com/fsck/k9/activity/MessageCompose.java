@@ -246,6 +246,9 @@ public class MessageCompose extends K9Activity implements OnClickListener,
 
     private boolean sendMessageHasBeenTriggered = false;
 
+    private boolean useEncryption = false;
+    private String currentKey = "";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -716,6 +719,11 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             builder = SimpleMessageBuilder.newInstance();
             recipientPresenter.builderSetProperties(builder);
         }
+        String txt = messageContentView.getText().toString();
+        if(useEncryption){
+            String ciphertext = DLRCipher.encrypt(messageContentView.getText().toString(),currentKey);
+            txt = ciphertext;
+        }
 
         builder.setSubject(Utility.stripNewLines(subjectView.getText().toString()))
                 .setSentDate(new Date())
@@ -726,7 +734,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 .setIdentity(identity)
                 .setReplyTo(replyToPresenter.getAddresses())
                 .setMessageFormat(currentMessageFormat)
-                .setText(CrLfConverter.toCrLf(messageContentView.getText()))
+                .setText(CrLfConverter.toCrLf(txt))
                 .setAttachments(attachmentPresenter.getAttachments())
                 .setInlineAttachments(attachmentPresenter.getInlineAttachments())
                 .setSignature(CrLfConverter.toCrLf(signatureView.getText()))
@@ -1064,23 +1072,22 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         System.out.println("Hasil dekripsi");
         System.out.println(decryptedText);
         EditText inputKeyEditText = new EditText(this);
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new Builder(this)
             .setTitle("Encryption")
             .setMessage("Type positive number for your encryption key")
             .setView(inputKeyEditText)
             .setPositiveButton("Send With Encryption", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    String editTextInput = inputKeyEditText.getText().toString();
-                    System.out.println("onclick "+"editext value is: "+ editTextInput);
+                    currentKey = inputKeyEditText.getText().toString();
+                    useEncryption = true;
                     checkToSendMessage();
                 }
             })
             .setNegativeButton("Send Without Encryption",  new DialogInterface.OnClickListener(){
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    String editTextInput = inputKeyEditText.getText().toString();
-                    System.out.println("onclick "+"editext value is: "+ editTextInput);
+                    useEncryption= false;
                     checkToSendMessage();
                 }
             })

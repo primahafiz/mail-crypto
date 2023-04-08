@@ -101,10 +101,9 @@ public class DLRCipher {
         }else{
             for(int i=0;i<blocksQuarter.size();i+=4){
                 List<Integer>cur = new ArrayList<>();
-                cur.add(blocksQuarter.get(i));
-                cur.add(blocksQuarter.get(i+1));
-                cur.add(blocksQuarter.get(i+2));
-                cur.add(blocksQuarter.get(i+3));
+                for(int j=0;j<4;j++){
+                    cur.add(blocksQuarter.get(i+j));
+                }
                 for(int j=0;j<NROUND;j++){
                     cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(NROUND-j-1),NROUND-j);
                     List<Integer>tmpList = new ArrayList<>();
