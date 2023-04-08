@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.DialogInterface
 import android.graphics.drawable.Drawable
 import android.os.Parcel
 import android.os.Parcelable
@@ -13,10 +14,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import app.k9mail.core.android.common.contact.ContactRepository
 import app.k9mail.core.common.mail.EmailAddress
 import com.fsck.k9.Account
@@ -29,6 +32,8 @@ import com.fsck.k9.ui.messageview.MessageContainerView.OnRenderingFinishedListen
 import com.fsck.k9.view.MessageHeader
 import com.fsck.k9.view.ThemeUtils
 import com.fsck.k9.view.ToolableViewAnimator
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -119,20 +124,57 @@ class MessageTopView(
             containerView,
             false,
         ) as MessageContainerView
+        view.useDecryption = true;
         containerView.addView(view)
 
         val hideUnsignedTextDivider = account.isOpenPgpHideSignOnly
-        view.displayMessageViewContainer(
-            messageViewInfo,
-            object : OnRenderingFinishedListener {
-                override fun onLoadFinished() {
-                    displayViewOnLoadFinished(true)
-                }
-            },
-            loadPictures,
-            hideUnsignedTextDivider,
-            attachmentCallback,
-        )
+
+        val alertDecryption = AlertDialog.Builder(context);
+        val editTextKey = EditText(context);
+        alertDecryption.setTitle("Use Decryption");
+        alertDecryption.setMessage("Input decryption key");
+        alertDecryption.setView(editTextKey);
+
+        val startingPattern = "<div dir=\"auto\">";
+        val endingPattern = "</div>";
+
+        val txt = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0];
+        System.out.println("MESSAGE INFO");
+        System.out.println(messageViewInfo.text);
+
+        alertDecryption.setPositiveButton("Decrypt",DialogInterface.OnClickListener(function = {dialogInterface: DialogInterface?, i: Int ->
+            view.useDecryption = true;
+            view.keyDecryption = editTextKey.text.toString();
+            view.displayMessageViewContainer(
+                messageViewInfo,
+                object : OnRenderingFinishedListener {
+                    override fun onLoadFinished() {
+                        displayViewOnLoadFinished(true)
+                    }
+                },
+                loadPictures,
+                hideUnsignedTextDivider,
+                attachmentCallback,
+                txt
+            )
+        }));
+
+        alertDecryption.setNegativeButton("Don't Decrypt",DialogInterface.OnClickListener(function = {dialogInterface: DialogInterface?, i: Int ->
+            view.useDecryption = false;
+            view.displayMessageViewContainer(
+                messageViewInfo,
+                object : OnRenderingFinishedListener {
+                    override fun onLoadFinished() {
+                        displayViewOnLoadFinished(true)
+                    }
+                },
+                loadPictures,
+                hideUnsignedTextDivider,
+                attachmentCallback,
+            )
+        }));
+
+        alertDecryption.show();
 
         if (view.hasHiddenExternalImages && !showPicturesButtonClicked) {
             showShowPicturesButton()

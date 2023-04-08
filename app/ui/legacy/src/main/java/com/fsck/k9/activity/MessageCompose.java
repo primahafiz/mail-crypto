@@ -721,7 +721,10 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         }
         String txt = messageContentView.getText().toString();
         if(useEncryption){
+            System.out.println("HASIL ENKRIPSI");
+            System.out.println(messageContentView.getText().toString());
             String ciphertext = DLRCipher.encrypt(messageContentView.getText().toString(),currentKey);
+            System.out.println(ciphertext);
             txt = ciphertext;
         }
 

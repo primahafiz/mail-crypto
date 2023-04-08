@@ -25,6 +25,7 @@ import androidx.core.app.ShareCompat.IntentBuilder
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.fsck.k9.contact.ContactIntentHelper
+import com.fsck.k9.crypto.blockcipher.DLRCipher
 import com.fsck.k9.helper.ClipboardManager
 import com.fsck.k9.helper.Utility
 import com.fsck.k9.mail.Address
@@ -64,6 +65,9 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
     private val attachments = mutableMapOf<Uri, AttachmentViewInfo>()
     private var attachmentCallback: AttachmentViewCallback? = null
     private var currentAttachmentResolver: AttachmentResolver? = null
+
+    public var useDecryption = false;
+    public var keyDecryption = "";
 
     @get:JvmName("hasHiddenExternalImages")
     var hasHiddenExternalImages = false
@@ -384,13 +388,14 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         loadPictures: Boolean,
         hideUnsignedTextDivider: Boolean,
         attachmentCallback: AttachmentViewCallback?,
+        ciphertext : String = ""
     ) {
         this.attachmentCallback = attachmentCallback
 
         resetView()
         renderAttachments(messageViewInfo)
 
-        val messageText = messageViewInfo.text
+        val messageText = if(useDecryption) ciphertext else messageViewInfo.text;
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -400,9 +405,18 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
-
-        val textToDisplay = messageText
+        
+        var textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
+
+        if(useDecryption){
+            System.out.println("HASIL DECRYPT");
+            System.out.println(keyDecryption);
+            System.out.println(DLRCipher.decrypt(DLRCipher.encrypt("Hello from primesz",keyDecryption),keyDecryption));
+            System.out.println(DLRCipher.encrypt("Hello from primesz",keyDecryption));
+            System.out.println(messageViewInfo.extraText);
+            textToDisplay = DLRCipher.decrypt(textToDisplay,keyDecryption);
+        }
 
         displayHtmlContentWithInlineAttachments(
             htmlText = textToDisplay,
