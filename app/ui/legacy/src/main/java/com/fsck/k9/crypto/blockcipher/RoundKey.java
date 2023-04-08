@@ -50,14 +50,18 @@ public class RoundKey {
         for(int i=0;i<row;i++){
             res.add(new ArrayList<>());
             for(int j=0;j<col;j++){
-                res.get(i).add(0);
+                if(i==j){
+                    res.get(i).add(1);
+                }else{
+                    res.get(i).add(0);
+                }
             }
         }
         return res;
     }
 
     public List<List<Integer>> matPow(List<List<Integer>>mat, long n){
-        if(n == 1){
+        if(n == 0){
             return initMat(mat,mat.size(),mat.get(0).size());
         }
         List<List<Integer>>newMat = matPow(mat,n/2);
@@ -72,12 +76,12 @@ public class RoundKey {
         List<Integer>res = new ArrayList<>();
         for(int i=0;i<8;i++){
             long x = r % (1<<8);
-            r >>= 8;
+            r >>>= 8;
             res.add((int)x);
         }
         for(int i=0;i<8;i++){
             long x = l % (1<<8);
-            l >>= 8;
+            l >>>= 8;
             res.add((int)x);
         }
         // reverse
@@ -94,10 +98,10 @@ public class RoundKey {
         long mask = (1<<63);
         for(int i=0;i<k;i++){
             if(x % 2 == 1){
-                x >>= 1;
+                x >>>= 1;
                 x |= mask;
             }else{
-                x >>= 1;
+                x >>>= 1;
             }
         }
         return x;
@@ -137,13 +141,13 @@ public class RoundKey {
             // Convert listKey to integer
             long keyL = 0;
             for(int j=0;j<8;j++){
-                keyL += listKey.get(0).get(i);
+                keyL += listKey.get(0).get(j);
                 if(j == 7)break;
                 keyL <<= 8;
             }
             long keyR = 0;
             for(int j=0;j<8;j++){
-                keyR += listKey.get(0).get(i+8);
+                keyR += listKey.get(0).get(j+8);
                 if(j == 7)break;
                 keyR <<= 8;
             }

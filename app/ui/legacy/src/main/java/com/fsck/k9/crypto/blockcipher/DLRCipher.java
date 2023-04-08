@@ -2,6 +2,7 @@ package com.fsck.k9.crypto.blockcipher;
 
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,23 +19,23 @@ public class DLRCipher {
         int resXor2 = d ^ resF2;
 
         List<Integer>res = new ArrayList<>();
-        res.add(a);
         res.add(resXor1);
-        res.add(c);
+        res.add(a);
         res.add(resXor2);
+        res.add(c);
 
         return res;
     }
 
-    public static String intToChar(int x){
-        List<Integer>byteInt = new ArrayList<>();
+    public static String intToChar(long x){
+        List<Long>byteInt = new ArrayList<>();
         for(int i=0;i<4;i++){
-            byteInt.add(x % (1<<8));
-            x >>= 8;
+            byteInt.add(x & 0b11111111);
+            x >>>= 8;
         }
         String ans = "";
         for(int i=3;i>=0;i--){
-            ans += (char)(int)byteInt.get(i);
+            ans += (char)(long)byteInt.get(i);
         }
         return ans;
     }
@@ -44,16 +45,18 @@ public class DLRCipher {
         for(int i=0;i<countPadding;i++){
             text += PADDING;
         }
-        byte[] textBytes = text.getBytes();
+        byte[] textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
         List<Integer>blocksQuarter = new ArrayList<>();
         for(int i=0;i<textBytes.length;i+=4){
-            int block = 0;
+            long block = 0;
             for(int j=0;j<4;j++){
-                block += textBytes[i+j];
+                int tmp = (int)textBytes[i+j];
+                tmp = (tmp + 256) % 256;
+                block |= tmp;
                 if(j==3)break;
                 block <<= 8;
             }
-            blocksQuarter.add(block);
+            blocksQuarter.add((int)block);
         }
         if(strExternalKey.length()<16){
             int countPaddingKey = 16-strExternalKey.length();
@@ -62,10 +65,10 @@ public class DLRCipher {
             }
         }
         BigInteger externalKey = new BigInteger("0");
-        byte[] bytesExternalKey = strExternalKey.getBytes();
+        byte[] bytesExternalKey = strExternalKey.getBytes(StandardCharsets.UTF_8);
         for(int i=0;i<16;i++){
             externalKey.add(new BigInteger(String.valueOf(bytesExternalKey[i])));
-            if(i==16)break;
+            if(i==15)break;
             externalKey.shiftLeft(8);
         }
         RoundKey roundKey = new RoundKey(externalKey);
@@ -78,35 +81,46 @@ public class DLRCipher {
                     cur.add(blocksQuarter.get(i+j));
                 }
                 for(int j=0;j<NROUND;j++){
-                    cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(j),i+1);
+                    cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(j),j+1);
                     List<Integer>tmpList = new ArrayList<>();
+                    tmpList.add(cur.get(0));
                     tmpList.add(cur.get(1));
                     tmpList.add(cur.get(2));
                     tmpList.add(cur.get(3));
-                    tmpList.add(cur.get(0));
                     cur = tmpList;
                 }
+                for(int j=0;j<4;j+=2){
+                    int tmp = cur.get(j);
+                    cur.set(j,cur.get(j+1));
+                    cur.set(j+1,tmp);
+                }
                 for(int j=0;j<4;j++){
-                    ans += intToChar(cur.get(i));
+                    ans += intToChar(cur.get(j));
                 }
             }
         }else{
             for(int i=0;i<blocksQuarter.size();i+=4){
                 List<Integer>cur = new ArrayList<>();
-                for(int j=0;j<4;j++){
-                    cur.add(blocksQuarter.get(i+j));
-                }
+                cur.add(blocksQuarter.get(i));
+                cur.add(blocksQuarter.get(i+1));
+                cur.add(blocksQuarter.get(i+2));
+                cur.add(blocksQuarter.get(i+3));
                 for(int j=0;j<NROUND;j++){
-                    cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(j),i+1);
+                    cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(NROUND-j-1),NROUND-j);
                     List<Integer>tmpList = new ArrayList<>();
-                    tmpList.add(cur.get(3));
                     tmpList.add(cur.get(0));
                     tmpList.add(cur.get(1));
                     tmpList.add(cur.get(2));
+                    tmpList.add(cur.get(3));
                     cur = tmpList;
                 }
+                for(int j=0;j<4;j+=2){
+                    int tmp = cur.get(j);
+                    cur.set(j,cur.get(j+1));
+                    cur.set(j+1,tmp);
+                }
                 for(int j=0;j<4;j++){
-                    ans += intToChar(cur.get(i));
+                    ans += intToChar(cur.get(j));
                 }
                 int lstIdxPadding = ans.length();
                 for(int j=ans.length()-1;j>=0;j--){

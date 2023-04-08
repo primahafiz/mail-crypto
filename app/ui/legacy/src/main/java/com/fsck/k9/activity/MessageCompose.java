@@ -77,6 +77,7 @@ import com.fsck.k9.controller.MessageReference;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.controller.SimpleMessagingListener;
+import com.fsck.k9.crypto.blockcipher.DLRCipher;
 import com.fsck.k9.crypto.blockcipher.MatrixRoundKey;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment.AttachmentDownloadCancelListener;
@@ -1052,6 +1053,16 @@ public class MessageCompose extends K9Activity implements OnClickListener,
     }
 
     public void showInputKeyView(){
+        String key = "inikey";
+        String plaintext = "apakah benar";
+        System.out.println("Teks");
+        System.out.println(plaintext);
+        String ciphertext = DLRCipher.encrypt(plaintext,key);
+        System.out.println("Hasil enkripsi");
+        System.out.println(ciphertext);
+        String decryptedText = DLRCipher.decrypt(ciphertext,key);
+        System.out.println("Hasil dekripsi");
+        System.out.println(decryptedText);
         EditText inputKeyEditText = new EditText(this);
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Encryption")
