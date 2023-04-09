@@ -37,6 +37,8 @@ import com.fsck.k9.ui.R
 import com.fsck.k9.view.MessageWebView
 import com.fsck.k9.view.MessageWebView.OnPageFinishedListener
 import com.fsck.k9.view.WebViewConfigProvider
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import org.jsoup.Jsoup
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -396,7 +398,8 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         resetView()
         renderAttachments(messageViewInfo)
 
-        val messageText = if(useDecryption) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
+        println(ciphertext)
+        var messageText = if(useDecryption) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -406,10 +409,18 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            messageText = String(Base64.getDecoder().decode(messageText),StandardCharsets.ISO_8859_1);
+        }
+
         var textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
         if(useDecryption){
+            println("HASIL DECRYPT");
+            println(messageText);
+            println(DLRCipher.encrypt("The theory of everything",keyDecryption))
             textToDisplay = DLRCipher.decrypt(textToDisplay,keyDecryption);
         }
 

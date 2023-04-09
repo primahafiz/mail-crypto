@@ -2,6 +2,8 @@ package com.fsck.k9.activity;
 
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,10 +24,12 @@ import android.content.IntentSender.SendIntentException;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import android.text.TextUtils;
@@ -694,7 +698,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         setTitle(action.getTitleResource());
     }
 
-    @Nullable
+
     private MessageBuilder createMessageBuilder(boolean isDraft) {
         MessageBuilder builder;
 
@@ -724,8 +728,13 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             System.out.println("HASIL ENKRIPSI");
             System.out.println(messageContentView.getText().toString());
             String ciphertext = DLRCipher.encrypt(messageContentView.getText().toString(),currentKey);
+            String base64Cipher = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                base64Cipher = Base64.getEncoder().encodeToString(ciphertext.getBytes(StandardCharsets.ISO_8859_1));
+            }
             System.out.println(ciphertext);
-            txt = ciphertext;
+            System.out.println(base64Cipher);
+            txt = base64Cipher;
         }
 
         builder.setSubject(Utility.stripNewLines(subjectView.getText().toString()))
