@@ -139,8 +139,6 @@ class MessageTopView(
         val endingPattern = "</div>";
 
         val txt = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0];
-        System.out.println("MESSAGE INFO");
-        System.out.println(messageViewInfo.text);
 
         alertDecryption.setPositiveButton("Decrypt",DialogInterface.OnClickListener(function = {dialogInterface: DialogInterface?, i: Int ->
             view.useDecryption = true;

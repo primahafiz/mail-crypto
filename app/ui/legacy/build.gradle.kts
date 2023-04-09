@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.glide)
+    implementation("org.jsoup:jsoup:1.15.4")
     annotationProcessor(libs.glide.compiler)
 
     testImplementation(projects.core.testing)

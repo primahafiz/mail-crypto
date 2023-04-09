@@ -37,6 +37,7 @@ import com.fsck.k9.ui.R
 import com.fsck.k9.view.MessageWebView
 import com.fsck.k9.view.MessageWebView.OnPageFinishedListener
 import com.fsck.k9.view.WebViewConfigProvider
+import org.jsoup.Jsoup
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
@@ -395,7 +396,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         resetView()
         renderAttachments(messageViewInfo)
 
-        val messageText = if(useDecryption) ciphertext else messageViewInfo.text;
+        val messageText = if(useDecryption) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -405,16 +406,10 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
-        
         var textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
         if(useDecryption){
-            System.out.println("HASIL DECRYPT");
-            System.out.println(keyDecryption);
-            System.out.println(DLRCipher.decrypt(DLRCipher.encrypt("Hello from primesz",keyDecryption),keyDecryption));
-            System.out.println(DLRCipher.encrypt("Hello from primesz",keyDecryption));
-            System.out.println(messageViewInfo.extraText);
             textToDisplay = DLRCipher.decrypt(textToDisplay,keyDecryption);
         }
 
