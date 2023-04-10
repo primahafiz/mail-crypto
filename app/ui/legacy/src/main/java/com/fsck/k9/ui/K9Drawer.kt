@@ -7,6 +7,7 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.widget.ImageView
 import androidx.core.view.GravityCompat
@@ -29,6 +30,7 @@ import com.fsck.k9.ui.folders.FolderIconProvider
 import com.fsck.k9.ui.folders.FolderList
 import com.fsck.k9.ui.folders.FolderNameFormatter
 import com.fsck.k9.ui.folders.FoldersViewModel
+import com.fsck.k9.ui.keygenerator.KeyGeneratorActivity
 import com.fsck.k9.ui.settings.SettingsActivity
 import com.mikepenz.materialdrawer.holder.BadgeStyle
 import com.mikepenz.materialdrawer.holder.ImageHolder
@@ -270,6 +272,15 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
     }
 
     private fun addFooterItems() {
+
+        sliderView.addStickyFooterItem(
+            PrimaryDrawerItem().apply {
+                nameRes = R.string.key_action
+                iconRes = R.drawable.baseline_key_24
+                identifier = DRAWER_ID_KEYGENERATOR
+                isSelectable = false
+            },
+        )
         sliderView.addStickyFooterItem(
             PrimaryDrawerItem().apply {
                 nameRes = R.string.folders_action
@@ -345,6 +356,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
             DRAWER_ID_PREFERENCES -> SettingsActivity.launch(parent)
             DRAWER_ID_FOLDERS -> parent.launchManageFoldersScreen()
             DRAWER_ID_UNIFIED_INBOX -> parent.openUnifiedInbox()
+            DRAWER_ID_KEYGENERATOR -> KeyGeneratorActivity.launch(parent)
             else -> {
                 val folder = drawerItem.tag as Folder
                 parent.openFolder(folder.id)
@@ -529,6 +541,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
         private const val DRAWER_ID_DIVIDER: Long = 1
         private const val DRAWER_ID_PREFERENCES: Long = 2
         private const val DRAWER_ID_FOLDERS: Long = 3
+        private const val DRAWER_ID_KEYGENERATOR: Long = 4
 
         private const val PROGRESS_VIEW_END_OFFSET = 32
         private const val PROGRESS_VIEW_SLINGSHOT_DISTANCE = 48

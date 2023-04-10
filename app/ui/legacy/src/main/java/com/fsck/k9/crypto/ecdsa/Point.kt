@@ -4,6 +4,6 @@ import java.math.BigInteger
 
 class Point (val x: BigInteger, val y: BigInteger, val curve:Curve){
     override fun toString(): String {
-        return "$x, $y"
+        return "X: $x \nY: $y"
     }
 }

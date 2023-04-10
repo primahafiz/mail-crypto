@@ -263,6 +263,10 @@
             android:label="@string/prefs_title" />
 
         <activity
+            android:name=".ui.keygenerator.KeyGeneratorActivity"
+            android:label="Generate Key" />
+
+        <activity
             android:name=".ui.settings.general.GeneralSettingsActivity"
             android:label="@string/general_settings_title" />
 

@@ -11,7 +11,7 @@ class KeyPair (val publicKey : Point, val privateKey: BigInteger){
             return KeyPair(publicKey, privateKey)
         }
 
-        fun newInstance (privateKey: BigInteger, curve: Curve) : KeyPair {
+        fun generate (privateKey: BigInteger, curve: Curve) : KeyPair {
             val publicKey = curve.dot_n_times(curve.g, privateKey)
             return KeyPair(publicKey, privateKey)
         }
