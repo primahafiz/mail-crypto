@@ -409,8 +409,8 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && useDecryption) {
+            println(messageText)
             messageText = String(Base64.getDecoder().decode(messageText),StandardCharsets.ISO_8859_1);
         }
 
@@ -418,10 +418,11 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
         if(useDecryption){
-            println("HASIL DECRYPT");
-            println(messageText);
-            println(DLRCipher.encrypt("The theory of everything",keyDecryption))
-            textToDisplay = DLRCipher.decrypt(textToDisplay,keyDecryption);
+            var startText = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"><style type=\"text/css\"> pre.k9mail {white-space: pre-wrap; word-wrap:break-word; font-family: sans-serif; margin-top: 0px}</style><style type=\"text/css\">.k9mail-signature { opacity: 0.5 }</style></head><body><div dir=\"auto\">";
+            var endText = "</div></body></html>";
+            println("KEY");
+            println(keyDecryption)
+            textToDisplay = startText + DLRCipher.decrypt(textToDisplay,keyDecryption) + endText;
         }
 
         displayHtmlContentWithInlineAttachments(

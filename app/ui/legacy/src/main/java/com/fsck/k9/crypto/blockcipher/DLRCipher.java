@@ -67,9 +67,9 @@ public class DLRCipher {
         BigInteger externalKey = new BigInteger("0");
         byte[] bytesExternalKey = strExternalKey.getBytes(StandardCharsets.UTF_8);
         for(int i=0;i<16;i++){
-            externalKey.add(new BigInteger(String.valueOf(bytesExternalKey[i])));
+            externalKey = externalKey.add(new BigInteger(String.valueOf(bytesExternalKey[i])));
             if(i==15)break;
-            externalKey.shiftLeft(8);
+            externalKey = externalKey.shiftLeft(8);
         }
         RoundKey roundKey = new RoundKey(externalKey);
         List<Long>listRoundKey = roundKey.getListRoundKey();
