@@ -83,16 +83,11 @@ public class DLRCipher {
                 for(int j=0;j<NROUND;j++){
                     cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(j),j+1);
                     List<Integer>tmpList = new ArrayList<>();
+                    tmpList.add(cur.get(3));
                     tmpList.add(cur.get(0));
                     tmpList.add(cur.get(1));
                     tmpList.add(cur.get(2));
-                    tmpList.add(cur.get(3));
                     cur = tmpList;
-                }
-                for(int j=0;j<4;j+=2){
-                    int tmp = cur.get(j);
-                    cur.set(j,cur.get(j+1));
-                    cur.set(j+1,tmp);
                 }
                 for(int j=0;j<4;j++){
                     ans += intToChar(cur.get(j));
@@ -105,18 +100,13 @@ public class DLRCipher {
                     cur.add(blocksQuarter.get(i+j));
                 }
                 for(int j=0;j<NROUND;j++){
-                    cur = feistel(cur.get(0),cur.get(1),cur.get(2),cur.get(3),listRoundKey.get(NROUND-j-1),NROUND-j);
+                    cur = feistel(cur.get(2),cur.get(1),cur.get(0),cur.get(3),listRoundKey.get(NROUND-j-1),NROUND-j);
                     List<Integer>tmpList = new ArrayList<>();
-                    tmpList.add(cur.get(0));
                     tmpList.add(cur.get(1));
-                    tmpList.add(cur.get(2));
+                    tmpList.add(cur.get(0));
                     tmpList.add(cur.get(3));
+                    tmpList.add(cur.get(2));
                     cur = tmpList;
-                }
-                for(int j=0;j<4;j+=2){
-                    int tmp = cur.get(j);
-                    cur.set(j,cur.get(j+1));
-                    cur.set(j+1,tmp);
                 }
                 for(int j=0;j<4;j++){
                     ans += intToChar(cur.get(j));
