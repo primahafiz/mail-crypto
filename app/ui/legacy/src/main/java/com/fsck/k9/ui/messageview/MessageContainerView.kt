@@ -71,6 +71,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
     public var useDecryption = false;
     public var keyDecryption = "";
+    public var isFromK9Mail = true;
 
     @get:JvmName("hasHiddenExternalImages")
     var hasHiddenExternalImages = false
@@ -399,7 +400,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         renderAttachments(messageViewInfo)
 
         println(ciphertext)
-        var messageText = if(useDecryption) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
+        var messageText = if(useDecryption && isFromK9Mail) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -409,7 +410,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && useDecryption) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && useDecryption && isFromK9Mail) {
             println(messageText)
             messageText = String(Base64.getDecoder().decode(messageText),StandardCharsets.ISO_8859_1);
         }
@@ -417,7 +418,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         var textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
-        if(useDecryption){
+        if(useDecryption && isFromK9Mail){
             var startText = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"><style type=\"text/css\"> pre.k9mail {white-space: pre-wrap; word-wrap:break-word; font-family: sans-serif; margin-top: 0px}</style><style type=\"text/css\">.k9mail-signature { opacity: 0.5 }</style></head><body><div dir=\"auto\">";
             var endText = "</div></body></html>";
             println("KEY");

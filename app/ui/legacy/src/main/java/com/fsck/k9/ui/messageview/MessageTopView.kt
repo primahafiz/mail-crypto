@@ -138,7 +138,35 @@ class MessageTopView(
         val startingPattern = "<div dir=\"auto\">";
         val endingPattern = "</div>";
 
-        val txt = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0];
+        var txt = "";
+        var isFromK9Mail = true;
+
+        try{
+            val tmp = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0];
+            txt = tmp;
+        }catch (e:Exception){
+            isFromK9Mail = false;
+            println("Message not from k9-mail")
+        }
+
+        if(!isFromK9Mail){
+            view.isFromK9Mail = false;
+            view.displayMessageViewContainer(
+                messageViewInfo,
+                object : OnRenderingFinishedListener {
+                    override fun onLoadFinished() {
+                        displayViewOnLoadFinished(true)
+                    }
+                },
+                loadPictures,
+                hideUnsignedTextDivider,
+                attachmentCallback,
+                messageViewInfo.text
+            )
+            return;
+        }
+        println("DARI K9 MAIL GAN")
+        view.isFromK9Mail = true;
 
         alertDecryption.setPositiveButton("Decrypt",DialogInterface.OnClickListener(function = {dialogInterface: DialogInterface?, i: Int ->
             view.useDecryption = true;
