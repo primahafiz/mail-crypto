@@ -32,6 +32,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
+
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -83,6 +85,8 @@ import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.controller.SimpleMessagingListener;
 import com.fsck.k9.crypto.blockcipher.DLRCipher;
 import com.fsck.k9.crypto.blockcipher.MatrixRoundKey;
+import com.fsck.k9.crypto.ecdsa.EcDSA;
+import com.fsck.k9.crypto.ecdsa.Signature;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment.AttachmentDownloadCancelListener;
 import com.fsck.k9.fragment.ProgressDialogFragment;
@@ -119,6 +123,7 @@ import com.fsck.k9.ui.compose.QuotedMessageMvpView;
 import com.fsck.k9.ui.compose.QuotedMessagePresenter;
 import com.fsck.k9.ui.helper.SizeFormatter;
 import com.fsck.k9.ui.messagelist.DefaultFolderProvider;
+import com.fsck.k9.ui.messageview.MessageContainerView;
 import com.fsck.k9.ui.permissions.K9PermissionUiHelper;
 import com.fsck.k9.ui.permissions.Permission;
 import com.fsck.k9.ui.permissions.PermissionUiHelper;
@@ -1038,6 +1043,8 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         int id = item.getItemId();
         if (id == android.R.id.home) {
             prepareToFinish(true);
+        } else if (id == R.id.sign_email) {
+            signEmail();
         } else if (id == R.id.send) {
             showInputKeyView();
         } else if (id == R.id.save) {
@@ -1070,6 +1077,51 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    public void signEmail(){
+        EditText inputKeyEditText = new EditText(this);
+        inputKeyEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        AlertDialog dialog = new Builder(this)
+            .setTitle("Digital Signature")
+            .setMessage("Type positive number for your signature key")
+            .setView(inputKeyEditText)
+            .setPositiveButton("Sign", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    currentKey = inputKeyEditText.getText().toString();
+                    String txt = messageContentView.getText().toString();
+                    if (currentKey.length()==0 || txt.length() == 0){
+                        return;
+                    }
+                    Signature signature = EcDSA.INSTANCE.sign(currentKey,txt);
+                    messageContentView.setText(signatureAppender(txt,signature));
+                    System.out.println(signature.getR().toString());
+                    System.out.println(signature.getS().toString());
+                    System.out.println(currentKey);
+                    System.out.println(txt);
+                }
+            })
+//            .setNegativeButton("Send Without Encryption",  new DialogInterface.OnClickListener(){
+//                @Override
+//                public void onClick(DialogInterface dialogInterface, int i) {
+//                }
+//            })
+            .create();
+        dialog.show();
+    }
+    public String signatureAppender(String message, Signature signature){
+        String begin = "*** Begin of digital signature ***";
+        String end = "*** End of digital signature ***";
+        return message +
+            System.lineSeparator() +
+            begin +
+            System.lineSeparator() +
+            signature.getR()+
+            System.lineSeparator() +
+            signature.getS()+
+            System.lineSeparator()+
+            end;
     }
 
     public void showInputKeyView(){

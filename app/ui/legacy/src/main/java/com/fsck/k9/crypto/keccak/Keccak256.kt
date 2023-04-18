@@ -1,9 +1,10 @@
 package com.fsck.k9.crypto.keccak
 
+import com.fsck.k9.crypto.ecdsa.Hasher
 import java.math.BigInteger
 import kotlin.math.min
 
-object Keccak256 {
+object Keccak256: Hasher {
     private val BIT_65 = BigInteger.ONE shl 64
     private val MAX_64_BITS = BIT_65 - BigInteger.ONE
 
@@ -11,7 +12,7 @@ object Keccak256 {
     private const val DIGEST_SIZE = 32  // d
     private const val ROUNDS = 24
 
-    fun hash(plain: ByteArray): ByteArray {
+    override fun hash(plain: ByteArray): ByteArray {
         val state = IntArray(200)
         // convert plain from byte array to unsigned int array
         val uMessage = IntArray(plain.size) { plain[it].toInt() and 0xFF }

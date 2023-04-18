@@ -28,6 +28,7 @@
         <attr name="iconActionSearch" format="reference" />
         <attr name="iconActionSearchFolder" format="reference" />
         <attr name="iconActionSend" format="reference" />
+        <attr name="iconSignEmail" format="reference" />
         <attr name="iconActionSettings" format="reference" />
         <attr name="iconActionSort" format="reference" />
         <attr name="iconActionSpam" format="reference" />

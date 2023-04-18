@@ -8,6 +8,12 @@
         app:showAsAction="always"
     />
     <item
+        android:id="@+id/sign_email"
+        android:title="@string/sign_email_action"
+        android:icon="?attr/iconSignEmail"
+        app:showAsAction="always"
+        />
+    <item
         android:id="@+id/send"
         android:title="@string/send_action"
         android:icon="?attr/iconActionSend"

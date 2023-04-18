@@ -1,6 +1,7 @@
 package com.fsck.k9.crypto.ecdsa
 
 
+import com.fsck.k9.crypto.keccak.Keccak256
 import java.math.BigInteger
 import java.security.SecureRandom
 
@@ -36,6 +37,16 @@ object EcDSA {
         return Signature(r, s)
     }
 
+    fun sign(keyPair: KeyPair, message: String, hasher: Hasher): Signature{
+        val message_byte = message.toByteArray();
+        return sign(keyPair,message_byte,hasher)
+    }
+    fun sign(privateKey: String, message: String): Signature{
+        val message_byte = message.toByteArray();
+        val SK = BigInteger(privateKey)
+        val keyPair = KeyPair.generate(SK, Secp256k1)
+        return sign(keyPair,message_byte, Keccak256)
+    }
     fun verify(PK: Point, message: ByteArray, hasher: Hasher, signature: Signature): Boolean{
         val md = BigInteger(1,hasher.hash((message)))
         val g = PK.curve.g
