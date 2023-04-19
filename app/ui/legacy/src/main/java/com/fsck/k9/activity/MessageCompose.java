@@ -1094,10 +1094,6 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                     txt = txt.trim();
                     Signature signature = EcDSA.INSTANCE.sign(currentKey,txt);
                     messageContentView.setText(signatureAppender(txt,signature));
-                    System.out.println(signature.getR().toString());
-                    System.out.println(signature.getS().toString());
-                    System.out.println(currentKey);
-                    System.out.println(txt);
                 }
             })
 //            .setNegativeButton("Send Without Encryption",  new DialogInterface.OnClickListener(){
@@ -1112,6 +1108,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         String begin = "*** Begin of digital signature ***";
         String end = "*** End of digital signature ***";
         return message +
+            System.lineSeparator() +
             System.lineSeparator() +
             begin +
             System.lineSeparator() +

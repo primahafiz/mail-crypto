@@ -1,5 +1,6 @@
 package com.fsck.k9.ui.messageview
 
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -7,25 +8,23 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.text.InputType
 import android.util.AttributeSet
-import android.view.ContextMenu
+import android.view.*
 import android.view.ContextMenu.ContextMenuInfo
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import android.view.View.OnCreateContextMenuListener
-import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.app.ShareCompat.IntentBuilder
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.fsck.k9.contact.ContactIntentHelper
 import com.fsck.k9.crypto.blockcipher.DLRCipher
+import com.fsck.k9.crypto.ecdsa.EcDSA
+import com.fsck.k9.crypto.ecdsa.Point
+import com.fsck.k9.crypto.ecdsa.Signature
 import com.fsck.k9.helper.ClipboardManager
 import com.fsck.k9.helper.Utility
 import com.fsck.k9.mail.Address
@@ -37,8 +36,10 @@ import com.fsck.k9.ui.R
 import com.fsck.k9.view.MessageWebView
 import com.fsck.k9.view.MessageWebView.OnPageFinishedListener
 import com.fsck.k9.view.WebViewConfigProvider
+import java.math.BigInteger
 import java.nio.charset.StandardCharsets
-import java.util.Base64
+import java.util.*
+import java.util.regex.Pattern
 import org.jsoup.Jsoup
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -392,15 +393,36 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         loadPictures: Boolean,
         hideUnsignedTextDivider: Boolean,
         attachmentCallback: AttachmentViewCallback?,
-        ciphertext : String = ""
+        ciphertext: String = "",
     ) {
         this.attachmentCallback = attachmentCallback
 
         resetView()
         renderAttachments(messageViewInfo)
 
-        println(ciphertext)
-        var messageText = if(useDecryption && isFromK9Mail) Jsoup.parse(ciphertext).text() else messageViewInfo.text;
+        val startingPattern = "<div dir=\"auto\">";
+        val endingPattern = "</div>";
+        var htmlMessage = messageViewInfo.text
+
+        try {
+            var temp = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0]
+            if (!useDecryption && isFromK9Mail) {
+                // split temp by <br>
+                var tempArray = temp.split("<br>")
+                var res = Jsoup.parse(tempArray[0]).text()
+                for (i in 1 until tempArray.size) {
+                    res += "\n" + Jsoup.parse(tempArray[i]).text()
+                }
+                htmlMessage = res
+            } else {
+                htmlMessage = Jsoup.parse(temp).text()
+            }
+        } catch (e: Exception) {
+            println("Error: $e")
+        }
+
+        var messageText = if(useDecryption && isFromK9Mail) Jsoup.parse(ciphertext).text() else htmlMessage
+
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -411,7 +433,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && useDecryption && isFromK9Mail) {
-            println(messageText)
             messageText = String(Base64.getDecoder().decode(messageText),StandardCharsets.ISO_8859_1);
         }
 
@@ -419,15 +440,58 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
         if(useDecryption && isFromK9Mail){
-            var startText = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"><style type=\"text/css\"> pre.k9mail {white-space: pre-wrap; word-wrap:break-word; font-family: sans-serif; margin-top: 0px}</style><style type=\"text/css\">.k9mail-signature { opacity: 0.5 }</style></head><body><div dir=\"auto\">";
-            var endText = "</div></body></html>";
-            println("KEY");
-            println(keyDecryption)
-            textToDisplay = startText + DLRCipher.decrypt(textToDisplay,keyDecryption) + endText;
+            textToDisplay = DLRCipher.decrypt(textToDisplay,keyDecryption);
         }
 
+        var signature = getSignatureFromText(textToDisplay);
+        var verifyButton = findViewById<Button>(R.id.verify_signature_button);
+        if(signature != null) {
+            verifyButton.visibility = View.VISIBLE;
+            verifyButton.setOnClickListener {
+                val messageString = getMessageWithoutSignatureFromText(textToDisplay)
+
+                // create a dialog to show public key input
+                val builder = AlertDialog.Builder(context)
+                builder.setTitle("Check Signature")
+                builder.setMessage("Please enter the public key, x and y coordinates")
+
+                val inputX = EditText(context)
+                val inputY = EditText(context)
+                inputX.inputType = InputType.TYPE_CLASS_NUMBER
+                inputY.inputType = InputType.TYPE_CLASS_NUMBER
+
+                val layout = LinearLayout(context)
+                layout.orientation = LinearLayout.VERTICAL
+                layout.addView(inputX)
+                layout.addView(inputY)
+                builder.setView(layout)
+
+                builder.setPositiveButton("Check") { dialog, which ->
+                    // check if the signature is valid
+                    val publicKeyX = inputX.text.toString().toBigInteger()
+                    val publicKeyY = inputY.text.toString().toBigInteger()
+                    val publicKey = Point(publicKeyX, publicKeyY)
+                    val isSignatureValid = EcDSA.verify(publicKey, messageString.toByteArray(), signature)
+                    if (isSignatureValid) {
+                        // return alert signature is valid
+                        Toast.makeText(context, "Signature is valid", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // return alert signature is invalid
+                        Toast.makeText(context, "Signature is invalid", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
+                builder.show()
+            }
+        } else {
+            verifyButton.visibility = View.GONE
+        }
+
+        var startText = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"><style type=\"text/css\"> pre.k9mail {white-space: pre-wrap; word-wrap:break-word; font-family: sans-serif; margin-top: 0px}</style><style type=\"text/css\">.k9mail-signature { opacity: 0.5 }</style></head><body><div dir=\"auto\">";
+        var endText = "</div></body></html>";
+
         displayHtmlContentWithInlineAttachments(
-            htmlText = textToDisplay,
+            htmlText = startText + textToDisplay + endText,
             attachmentResolver = messageViewInfo.attachmentResolver,
             onPageFinishedListener = onRenderingFinishedListener::onLoadFinished,
         )
@@ -437,6 +501,41 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             unsignedTextDivider.isGone = hideUnsignedTextDivider
             unsignedText.text = messageViewInfo.extraText
         }
+    }
+
+    private fun getSignatureFromText(text: String): Signature? {
+        // find signature in textToDisplay using regex according to this structure
+        // *** Begin of digital signature ***
+        // signature
+        // *** End of digital signature ***
+        var signature : Signature? = null
+        val pattern = Pattern.compile("\\*\\*\\* Begin of digital signature \\*\\*\\*[\\n|' '](.+)[\\n|' '](.+)[\\n|' ']\\*\\*\\* End of digital signature \\*\\*\\*")
+        val matcher = pattern.matcher(text)
+        if (matcher.find()) {
+            signature = matcher.group(1)
+                ?.let { matcher.group(2)
+                    ?.let { it1 -> Signature(it.toBigInteger(), it1.toBigInteger()) } }
+        }
+        return signature
+    }
+
+    private fun getMessageWithoutSignatureFromText(text: String): String {
+        var messageWithoutSignature = ""
+        var pattern = Pattern.compile(
+            "\\*\\*\\* Begin of digital signature \\*\\*\\*[\\n|' '](.+)[\\n|' '](.+)[\\n|' ']\\*\\*\\* End of digital signature \\*\\*\\*",
+            Pattern.DOTALL,
+        )
+        var matcher = pattern.matcher(text)
+        if (matcher.find()) {
+            messageWithoutSignature = matcher.replaceAll("")
+        }
+
+        // remove extra one space at the end of preview using regex
+        pattern = Pattern.compile("\\s$")
+        matcher = pattern.matcher(messageWithoutSignature)
+        messageWithoutSignature = matcher.replaceAll("")
+
+        return messageWithoutSignature
     }
 
     private fun displayHtmlContentWithInlineAttachments(

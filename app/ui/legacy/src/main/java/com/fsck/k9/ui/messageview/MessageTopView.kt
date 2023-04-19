@@ -144,6 +144,7 @@ class MessageTopView(
         try{
             val tmp = messageViewInfo.text.split(startingPattern)[1].split(endingPattern)[0];
             txt = tmp;
+            println("txt message topview: " + txt)
         }catch (e:Exception){
             isFromK9Mail = false;
             println("Message not from k9-mail")

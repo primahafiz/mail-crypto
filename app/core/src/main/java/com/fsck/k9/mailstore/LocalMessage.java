@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import timber.log.Timber;
 
@@ -454,43 +452,5 @@ public class LocalMessage extends MimeMessage {
 
     private String getAccountUuid() {
         return getAccount().getUuid();
-    }
-
-    public String getSignature() {
-        // get signature from preview using regex with given structure
-        // *** Begin of digital signature ***
-        // signature
-        // *** End of digital signature ***
-        String preview = getPreview();
-        if (preview == null) {
-            return null;
-        }
-        String signature = null;
-        Pattern pattern = Pattern.compile("\\*\\*\\* Begin of digital signature \\*\\*\\*(.*?)\\*\\*\\* End of digital signature \\*\\*\\*", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(preview);
-        if (matcher.find()) {
-            signature = matcher.group(1);
-        }
-
-        return signature;
-    }
-
-    public String getPreviewWithoutSignature() {
-        String preview = getPreview();
-        if (preview == null) {
-            return null;
-        }
-        String previewWithoutSignature = preview;
-        Pattern pattern = Pattern.compile("\\*\\*\\* Begin of digital signature \\*\\*\\*(.*?)\\*\\*\\* End of digital signature \\*\\*\\*", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(preview);
-        if (matcher.find()) {
-            previewWithoutSignature = matcher.replaceAll("");
-        }
-        // remove extra one space at the end of preview using regex
-        pattern = Pattern.compile("\\s$");
-        matcher = pattern.matcher(previewWithoutSignature);
-        previewWithoutSignature = matcher.replaceAll("");
-
-        return previewWithoutSignature;
     }
 }

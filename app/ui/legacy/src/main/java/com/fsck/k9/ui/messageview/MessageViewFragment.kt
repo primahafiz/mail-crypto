@@ -317,7 +317,6 @@ class MessageViewFragment :
             R.id.delete -> onDelete()
             R.id.reply -> onReply()
             R.id.reply_all -> onReplyAll()
-            R.id.check_signature -> onCheckSignature()
             R.id.forward -> onForward()
             R.id.forward_as_attachment -> onForwardAsAttachment()
             R.id.edit_as_new_message -> onEditAsNewMessage()
@@ -334,56 +333,6 @@ class MessageViewFragment :
         }
 
         return true
-    }
-
-    private fun onCheckSignature() {
-        val message = message ?: return
-        val signatureString = message.signature
-
-        if (signatureString == null) {
-            Toast.makeText(requireContext(), "No signature found", Toast.LENGTH_SHORT).show()
-        } else {
-            val data = message.previewWithoutSignature
-
-            // separate the signatureString into two parts by space and convert to Signature object
-            val signatureParts = signatureString.split(" ")
-            val signatureR = BigInteger(signatureParts[1])
-            val signatureS = BigInteger(signatureParts[2])
-            val signature = Signature(signatureR, signatureS)
-
-            // create a dialog to show public key input
-            val builder = AlertDialog.Builder(requireContext())
-            builder.setTitle("Check Signature")
-            builder.setMessage("Please enter the public key, x and y coordinates")
-
-            val inputX = EditText(requireContext())
-            val inputY = EditText(requireContext())
-            inputX.inputType = InputType.TYPE_CLASS_NUMBER
-            inputY.inputType = InputType.TYPE_CLASS_NUMBER
-
-            val layout = LinearLayout(requireContext())
-            layout.orientation = LinearLayout.VERTICAL
-            layout.addView(inputX)
-            layout.addView(inputY)
-            builder.setView(layout)
-
-            builder.setPositiveButton("Check") { dialog, which ->
-                // check if the signature is valid
-                val publicKeyX = inputX.text.toString().toBigInteger()
-                val publicKeyY = inputY.text.toString().toBigInteger()
-                val publicKey = Point(publicKeyX, publicKeyY)
-                val isSignatureValid = EcDSA.verify(publicKey, data.toByteArray(), signature)
-                if (isSignatureValid) {
-                    // return alert signature is valid
-                    Toast.makeText(requireContext(), "Signature is valid", Toast.LENGTH_SHORT).show()
-                } else {
-                    // return alert signature is invalid
-                    Toast.makeText(requireContext(), "Signature is invalid", Toast.LENGTH_SHORT).show()
-                }
-            }
-            builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
-            builder.show()
-        }
     }
 
     private fun onShowHeaders() {
@@ -456,7 +405,6 @@ class MessageViewFragment :
             when (itemId) {
                 R.id.reply -> onReply()
                 R.id.reply_all -> onReplyAll()
-                R.id.check_signature -> onCheckSignature()
                 R.id.forward -> onForward()
                 R.id.forward_as_attachment -> onForwardAsAttachment()
                 R.id.edit_as_new_message -> onEditAsNewMessage()

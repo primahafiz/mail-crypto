@@ -1348,4 +1348,5 @@ You can keep this message and use it as a backup for your secret key. If you wan
     <string name="hint_public_key">Public key will be shown here</string>
     <string name="sign_email_action">Sign This Email</string>
     <string name="check_signature">Check signature</string>
+    <string name="verify_signature">Verify Signature</string>
 </resources>

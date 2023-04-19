@@ -9,9 +9,19 @@
     <com.fsck.k9.view.MessageWebView
         android:id="@+id/message_content"
         android:layout_height="wrap_content"
-        android:layout_width="fill_parent" />
+        android:layout_width="fill_parent" >
+
+    </com.fsck.k9.view.MessageWebView>
 
     <!-- Unsigned content area -->
+    <Button
+        android:id="@+id/verify_signature_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/verify_signature"
+        android:visibility="gone"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
