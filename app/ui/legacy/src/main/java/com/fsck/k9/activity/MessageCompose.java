@@ -1,16 +1,6 @@
 package com.fsck.k9.activity;
 
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -24,15 +14,9 @@ import android.content.IntentSender.SendIntentException;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.annotation.StringRes;
-import androidx.appcompat.app.ActionBar;
-
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -51,6 +35,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.ActionBar;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -84,7 +71,6 @@ import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.controller.SimpleMessagingListener;
 import com.fsck.k9.crypto.blockcipher.DLRCipher;
-import com.fsck.k9.crypto.blockcipher.MatrixRoundKey;
 import com.fsck.k9.crypto.ecdsa.EcDSA;
 import com.fsck.k9.crypto.ecdsa.Signature;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment;
@@ -123,7 +109,6 @@ import com.fsck.k9.ui.compose.QuotedMessageMvpView;
 import com.fsck.k9.ui.compose.QuotedMessagePresenter;
 import com.fsck.k9.ui.helper.SizeFormatter;
 import com.fsck.k9.ui.messagelist.DefaultFolderProvider;
-import com.fsck.k9.ui.messageview.MessageContainerView;
 import com.fsck.k9.ui.permissions.K9PermissionUiHelper;
 import com.fsck.k9.ui.permissions.Permission;
 import com.fsck.k9.ui.permissions.PermissionUiHelper;
@@ -131,6 +116,17 @@ import com.fsck.k9.ui.permissions.PermissionUiHelper;
 import org.jetbrains.annotations.NotNull;
 import org.openintents.openpgp.OpenPgpApiManager;
 import org.openintents.openpgp.util.OpenPgpApi;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import timber.log.Timber;
 
 
@@ -1094,6 +1090,8 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                     if (currentKey.length()==0 || txt.length() == 0){
                         return;
                     }
+                    // clean txt from leading and trailing spaces
+                    txt = txt.trim();
                     Signature signature = EcDSA.INSTANCE.sign(currentKey,txt);
                     messageContentView.setText(signatureAppender(txt,signature));
                     System.out.println(signature.getR().toString());

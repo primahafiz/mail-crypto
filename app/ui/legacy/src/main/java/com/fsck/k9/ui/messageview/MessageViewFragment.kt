@@ -1,6 +1,7 @@
 package com.fsck.k9.ui.messageview
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.content.IntentSender.SendIntentException
 import android.os.Bundle
 import android.os.Parcelable
 import android.os.SystemClock
+import android.text.InputType
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,6 +18,9 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.WebView
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.withStyledAttributes
@@ -30,6 +35,9 @@ import com.fsck.k9.activity.MessageLoaderHelper.MessageLoaderCallbacks
 import com.fsck.k9.activity.MessageLoaderHelperFactory
 import com.fsck.k9.controller.MessageReference
 import com.fsck.k9.controller.MessagingController
+import com.fsck.k9.crypto.ecdsa.EcDSA
+import com.fsck.k9.crypto.ecdsa.Point
+import com.fsck.k9.crypto.ecdsa.Signature
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment
 import com.fsck.k9.fragment.ConfirmationDialogFragment
 import com.fsck.k9.fragment.ConfirmationDialogFragment.ConfirmationDialogFragmentListener
@@ -52,6 +60,8 @@ import com.fsck.k9.ui.messageview.MessageCryptoPresenter.MessageCryptoMvpView
 import com.fsck.k9.ui.settings.account.AccountSettingsActivity
 import com.fsck.k9.ui.share.ShareIntentBuilder
 import com.fsck.k9.ui.withArguments
+import com.fsck.k9.view.MessageWebView
+import java.math.BigInteger
 import java.util.Locale
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -307,6 +317,7 @@ class MessageViewFragment :
             R.id.delete -> onDelete()
             R.id.reply -> onReply()
             R.id.reply_all -> onReplyAll()
+            R.id.check_signature -> onCheckSignature()
             R.id.forward -> onForward()
             R.id.forward_as_attachment -> onForwardAsAttachment()
             R.id.edit_as_new_message -> onEditAsNewMessage()
@@ -323,6 +334,56 @@ class MessageViewFragment :
         }
 
         return true
+    }
+
+    private fun onCheckSignature() {
+        val message = message ?: return
+        val signatureString = message.signature
+
+        if (signatureString == null) {
+            Toast.makeText(requireContext(), "No signature found", Toast.LENGTH_SHORT).show()
+        } else {
+            val data = message.previewWithoutSignature
+
+            // separate the signatureString into two parts by space and convert to Signature object
+            val signatureParts = signatureString.split(" ")
+            val signatureR = BigInteger(signatureParts[1])
+            val signatureS = BigInteger(signatureParts[2])
+            val signature = Signature(signatureR, signatureS)
+
+            // create a dialog to show public key input
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle("Check Signature")
+            builder.setMessage("Please enter the public key, x and y coordinates")
+
+            val inputX = EditText(requireContext())
+            val inputY = EditText(requireContext())
+            inputX.inputType = InputType.TYPE_CLASS_NUMBER
+            inputY.inputType = InputType.TYPE_CLASS_NUMBER
+
+            val layout = LinearLayout(requireContext())
+            layout.orientation = LinearLayout.VERTICAL
+            layout.addView(inputX)
+            layout.addView(inputY)
+            builder.setView(layout)
+
+            builder.setPositiveButton("Check") { dialog, which ->
+                // check if the signature is valid
+                val publicKeyX = inputX.text.toString().toBigInteger()
+                val publicKeyY = inputY.text.toString().toBigInteger()
+                val publicKey = Point(publicKeyX, publicKeyY)
+                val isSignatureValid = EcDSA.verify(publicKey, data.toByteArray(), signature)
+                if (isSignatureValid) {
+                    // return alert signature is valid
+                    Toast.makeText(requireContext(), "Signature is valid", Toast.LENGTH_SHORT).show()
+                } else {
+                    // return alert signature is invalid
+                    Toast.makeText(requireContext(), "Signature is invalid", Toast.LENGTH_SHORT).show()
+                }
+            }
+            builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
+            builder.show()
+        }
     }
 
     private fun onShowHeaders() {
@@ -395,6 +456,7 @@ class MessageViewFragment :
             when (itemId) {
                 R.id.reply -> onReply()
                 R.id.reply_all -> onReplyAll()
+                R.id.check_signature -> onCheckSignature()
                 R.id.forward -> onForward()
                 R.id.forward_as_attachment -> onForwardAsAttachment()
                 R.id.edit_as_new_message -> onEditAsNewMessage()

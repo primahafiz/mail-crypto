@@ -7,6 +7,9 @@
         android:id="@+id/reply_all"
         android:title="@string/reply_all_action"/>
     <item
+        android:id="@+id/check_signature"
+        android:title="@string/check_signature"/>
+    <item
         android:id="@+id/forward"
         android:title="@string/forward_action"/>
     <item

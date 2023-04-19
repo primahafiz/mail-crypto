@@ -25,32 +25,29 @@
             android:id="@+id/message_unsigned_divider"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            >
+            android:layout_marginTop="4dp">
 
             <View
                 android:layout_width="16dp"
                 android:layout_height="4dp"
-                android:layout_marginTop="1dp"
                 android:layout_gravity="center_vertical"
-                android:background="#d55"
-                />
+                android:layout_marginTop="1dp"
+                android:background="#d55" />
 
             <TextView
-                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
-                android:textAppearance="?android:textAppearanceSmall"
                 android:text="@string/unsigned_text_divider_label"
-                android:textColor="#d55"
-                />
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="#d55" />
 
             <View
                 android:layout_width="wrap_content"
                 android:layout_height="4dp"
-                android:layout_marginTop="1dp"
                 android:layout_gravity="center_vertical"
+                android:layout_marginTop="1dp"
                 android:background="#d55" />
 
         </LinearLayout>
